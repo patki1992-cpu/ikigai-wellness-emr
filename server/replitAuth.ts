@@ -128,6 +128,23 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // Auth bypass for development/testing (with production guard)
+  if (process.env.AUTH_BYPASS === 'true' && process.env.NODE_ENV !== 'production') {
+    if (!req.user) {
+      req.user = { 
+        claims: { 
+          sub: 'dev-user', 
+          email: 'dev@example.com',
+          first_name: 'Dev',
+          last_name: 'User'
+        }, 
+        expires_at: 1893456000 
+      };
+    }
+    console.log('⚠️  AUTH_BYPASS is active - authentication disabled for development');
+    return next();
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {

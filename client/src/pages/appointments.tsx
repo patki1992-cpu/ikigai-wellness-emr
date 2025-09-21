@@ -58,7 +58,8 @@ export default function Appointments() {
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
-      await apiRequest("POST", "/api/appointments", appointmentData);
+      console.log("Submitting appointment data:", appointmentData);
+      return await apiRequest("POST", "/api/appointments", appointmentData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });

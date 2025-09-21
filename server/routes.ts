@@ -24,6 +24,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      
+      // For auth bypass, return the dev user directly
+      if (process.env.AUTH_BYPASS === 'true' && process.env.NODE_ENV !== 'production' && userId === 'dev-user') {
+        return res.json({
+          id: 'dev-user',
+          email: 'dev@example.com',
+          firstName: 'Dev',
+          lastName: 'User',
+          profileImageUrl: null,
+        });
+      }
+      
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -127,10 +139,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/appointments", isAuthenticated, async (req: any, res) => {
     try {
       const providerId = req.user?.claims?.sub;
-      const validatedData = insertAppointmentSchema.parse({
+      
+      // Parse appointmentDate string to Date object before validation
+      const requestData = {
         ...req.body,
         providerId,
-      });
+      };
+      
+      if (requestData.appointmentDate && typeof requestData.appointmentDate === 'string') {
+        requestData.appointmentDate = new Date(requestData.appointmentDate);
+      }
+      
+      const validatedData = insertAppointmentSchema.parse(requestData);
       const appointment = await storage.createAppointment(validatedData);
       res.status(201).json(appointment);
     } catch (error) {

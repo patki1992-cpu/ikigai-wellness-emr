@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/form";
 import type { z } from "zod";
 
-type AppointmentFormData = z.infer<typeof insertAppointmentSchema>;
+// Form schema excluding providerId (added on server)
+const appointmentFormSchema = insertAppointmentSchema.omit({ providerId: true });
+type AppointmentFormData = z.infer<typeof appointmentFormSchema>;
 
 interface AppointmentFormProps {
   onSubmit: (data: AppointmentFormData) => void;
@@ -26,7 +28,7 @@ interface AppointmentFormProps {
 
 export default function AppointmentForm({ onSubmit, onCancel, isLoading, initialData }: AppointmentFormProps) {
   const form = useForm<AppointmentFormData>({
-    resolver: zodResolver(insertAppointmentSchema),
+    resolver: zodResolver(appointmentFormSchema),
     defaultValues: {
       patientId: initialData?.patientId || "",
       appointmentDate: initialData?.appointmentDate || new Date(),
@@ -38,16 +40,17 @@ export default function AppointmentForm({ onSubmit, onCancel, isLoading, initial
     },
   });
 
-  const formatDateTimeLocal = (date: string) => {
+  const formatDateTimeLocal = (date: string | Date) => {
     if (!date) return "";
-    const d = new Date(date);
+    const d = date instanceof Date ? date : new Date(date);
+    if (isNaN(d.getTime())) return ""; // Handle Invalid Date
     return d.toISOString().slice(0, 16);
   };
 
   const handleDateChange = (value: string) => {
     if (value) {
       const date = new Date(value);
-      return date.toISOString();
+      return date;
     }
     return value;
   };

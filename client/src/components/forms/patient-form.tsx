@@ -43,8 +43,8 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
       emergencyContactPhone: initialData?.emergencyContactPhone || "",
       emergencyContactRelation: initialData?.emergencyContactRelation || "",
       bloodType: initialData?.bloodType || "",
-      height: initialData?.height || "",
-      weight: initialData?.weight || "",
+      height: initialData?.height || undefined,
+      weight: initialData?.weight || undefined,
     },
   });
 
@@ -241,7 +241,16 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>Height (inches)</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ''} type="number" step="0.1" data-testid="input-height" />
+                  <Input 
+                    type="number" 
+                    step="0.1" 
+                    value={field.value ?? ''} 
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      field.onChange(v === '' ? undefined : v);
+                    }}
+                    data-testid="input-height" 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -255,7 +264,16 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>Weight (lbs)</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ''} type="number" step="0.1" data-testid="input-weight" />
+                  <Input 
+                    type="number" 
+                    step="0.1" 
+                    value={field.value ?? ''} 
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      field.onChange(v === '' ? undefined : v);
+                    }}
+                    data-testid="input-weight" 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
