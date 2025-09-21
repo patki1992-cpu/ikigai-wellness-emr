@@ -1,8 +1,8 @@
-# MediCore EMR - Electronic Medical Records System
+# Ikigai Wellness - Electronic Medical Records System
 
 ## Overview
 
-MediCore EMR is a comprehensive healthcare management system built for medical providers to manage patient care efficiently. The application features a full-stack architecture with React frontend and Express backend, providing integrated patient management, appointment scheduling, medical records, lab results tracking, radiology management, medication tracking, preventive care monitoring, and collaborative diet planning capabilities.
+Ikigai Wellness is a comprehensive healthcare management system built for medical providers to manage patient care efficiently. The application features a full-stack architecture with React frontend and Express backend, providing integrated patient management, appointment scheduling, medical records, lab results tracking, radiology management, medication tracking, preventive care monitoring, and collaborative diet planning capabilities.
 
 ## User Preferences
 

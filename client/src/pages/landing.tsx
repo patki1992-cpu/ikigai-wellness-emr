@@ -21,7 +21,7 @@ export default function Landing() {
                 <Activity className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-foreground">MediCore EMR</h1>
+                <h1 className="text-xl font-semibold text-foreground">Ikigai Wellness</h1>
                 <p className="text-sm text-muted-foreground">Healthcare Management System</p>
               </div>
             </div>
@@ -173,12 +173,12 @@ export default function Landing() {
                 <Activity className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">MediCore EMR</h3>
+                <h3 className="font-semibold text-foreground">Ikigai Wellness</h3>
                 <p className="text-sm text-muted-foreground">Healthcare Management System</p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2024 MediCore EMR. Built for healthcare professionals.
+              © 2024 Ikigai Wellness. Built for healthcare professionals.
             </p>
           </div>
         </div>

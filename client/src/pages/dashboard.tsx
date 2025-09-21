@@ -129,7 +129,7 @@ export default function Dashboard() {
     <div className="flex h-screen bg-background">
       <Sidebar />
       <main className="flex-1 overflow-hidden">
-        <Header title="Provider Dashboard" subtitle="Welcome back to MediCore EMR" />
+        <Header title="Provider Dashboard" subtitle="Welcome back to Ikigai Wellness" />
         
         <div className="flex-1 overflow-auto p-6">
           {/* Summary Cards */}

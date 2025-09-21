@@ -35,7 +35,7 @@ export default function Sidebar() {
             <Activity className="w-6 h-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-foreground">MediCore EMR</h1>
+            <h1 className="text-xl font-semibold text-foreground">Ikigai Wellness</h1>
             <p className="text-sm text-muted-foreground">Healthcare Management</p>
           </div>
         </div>
