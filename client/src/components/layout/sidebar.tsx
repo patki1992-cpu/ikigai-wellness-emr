@@ -36,7 +36,6 @@ export default function Sidebar() {
           </div>
           <div>
             <h1 className="text-xl font-semibold text-foreground">Ikigai Wellness</h1>
-            <p className="text-sm text-muted-foreground">Healthcare Management</p>
           </div>
         </div>
       </div>

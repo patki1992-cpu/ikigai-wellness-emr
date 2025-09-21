@@ -22,7 +22,6 @@ export default function Landing() {
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-foreground">Ikigai Wellness</h1>
-                <p className="text-sm text-muted-foreground">Healthcare Management System</p>
               </div>
             </div>
             <Button 
@@ -174,7 +173,6 @@ export default function Landing() {
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">Ikigai Wellness</h3>
-                <p className="text-sm text-muted-foreground">Healthcare Management System</p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
