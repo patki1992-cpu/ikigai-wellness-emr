@@ -125,7 +125,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>Social Security Number</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="XXX-XX-XXXX" data-testid="input-ssn" />
+                  <Input {...field} value={field.value || ''} placeholder="XXX-XX-XXXX" data-testid="input-ssn" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -139,7 +139,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="(555) 123-4567" data-testid="input-phone" />
+                  <Input {...field} value={field.value || ''} placeholder="(555) 123-4567" data-testid="input-phone" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -153,7 +153,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>Email Address</FormLabel>
                 <FormControl>
-                  <Input type="email" {...field} data-testid="input-email" />
+                  <Input {...field} value={field.value || ''} type="email" data-testid="input-email" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -167,7 +167,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>Blood Type</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="A+, B-, O+, etc." data-testid="input-blood-type" />
+                  <Input {...field} value={field.value || ''} placeholder="A+, B-, O+, etc." data-testid="input-blood-type" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -182,7 +182,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
             <FormItem>
               <FormLabel>Address</FormLabel>
               <FormControl>
-                <Textarea {...field} data-testid="textarea-address" />
+                <Textarea {...field} value={field.value || ''} data-testid="textarea-address" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -197,7 +197,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>City</FormLabel>
                 <FormControl>
-                  <Input {...field} data-testid="input-city" />
+                  <Input {...field} value={field.value || ''} data-testid="input-city" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -211,7 +211,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>State</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="CA, NY, TX, etc." data-testid="input-state" />
+                  <Input {...field} value={field.value || ''} placeholder="CA, NY, TX, etc." data-testid="input-state" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -225,7 +225,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>ZIP Code</FormLabel>
                 <FormControl>
-                  <Input {...field} data-testid="input-zip-code" />
+                  <Input {...field} value={field.value || ''} data-testid="input-zip-code" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -241,7 +241,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>Height (inches)</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.1" {...field} data-testid="input-height" />
+                  <Input {...field} value={field.value || ''} type="number" step="0.1" data-testid="input-height" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -255,7 +255,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>Weight (lbs)</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.1" {...field} data-testid="input-weight" />
+                  <Input {...field} value={field.value || ''} type="number" step="0.1" data-testid="input-weight" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -274,7 +274,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
                 <FormItem>
                   <FormLabel>Emergency Contact Name</FormLabel>
                   <FormControl>
-                    <Input {...field} data-testid="input-emergency-contact-name" />
+                    <Input {...field} value={field.value || ''} data-testid="input-emergency-contact-name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -288,7 +288,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
                 <FormItem>
                   <FormLabel>Emergency Contact Phone</FormLabel>
                   <FormControl>
-                    <Input {...field} data-testid="input-emergency-contact-phone" />
+                    <Input {...field} value={field.value || ''} data-testid="input-emergency-contact-phone" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -303,7 +303,7 @@ export default function PatientForm({ onSubmit, onCancel, isLoading, initialData
               <FormItem>
                 <FormLabel>Relationship</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Spouse, Parent, Sibling, etc." data-testid="input-emergency-contact-relation" />
+                  <Input {...field} value={field.value || ''} placeholder="Spouse, Parent, Sibling, etc." data-testid="input-emergency-contact-relation" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

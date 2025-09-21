@@ -133,7 +133,7 @@ export default function Radiology() {
       findings: "",
       impression: "",
       recommendation: "",
-      studyDate: "",
+      studyDate: new Date(),
       imageUrl: "",
       reportUrl: "",
     },

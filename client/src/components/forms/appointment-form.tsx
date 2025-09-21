@@ -29,7 +29,7 @@ export default function AppointmentForm({ onSubmit, onCancel, isLoading, initial
     resolver: zodResolver(insertAppointmentSchema),
     defaultValues: {
       patientId: initialData?.patientId || "",
-      appointmentDate: initialData?.appointmentDate || "",
+      appointmentDate: initialData?.appointmentDate || new Date(),
       duration: initialData?.duration || 30,
       appointmentType: initialData?.appointmentType || "",
       reason: initialData?.reason || "",
