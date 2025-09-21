@@ -24,13 +24,23 @@ export default function Landing() {
                 <h1 className="text-xl font-semibold text-foreground">Ikigai Wellness</h1>
               </div>
             </div>
-            <Button 
-              onClick={() => window.location.href = '/api/login'}
-              data-testid="button-login"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              Provider Login
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => window.location.href = '/patient-portal'}
+                data-testid="button-patient-portal"
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                Patient Portal
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/api/login'}
+                data-testid="button-provider-login"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                Provider Login
+              </Button>
+            </div>
           </div>
         </div>
       </header>
