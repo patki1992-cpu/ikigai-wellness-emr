@@ -36,6 +36,7 @@ export const users = pgTable("users", {
   role: varchar("role").default("provider"),
   specialization: varchar("specialization"),
   licenseNumber: varchar("license_number"),
+  patientId: varchar("patient_id").references(() => patients.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -220,16 +221,20 @@ export const mealEntries = pgTable("meal_entries", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   appointments: many(appointments),
   medicalRecords: many(medicalRecords),
   labResults: many(labResults),
   radiologyResults: many(radiologyResults),
   medications: many(medications),
   dietPlans: many(dietPlans),
+  patient: one(patients, {
+    fields: [users.patientId],
+    references: [patients.id],
+  }),
 }));
 
-export const patientsRelations = relations(patients, ({ many }) => ({
+export const patientsRelations = relations(patients, ({ one, many }) => ({
   appointments: many(appointments),
   medicalRecords: many(medicalRecords),
   labResults: many(labResults),
@@ -239,6 +244,10 @@ export const patientsRelations = relations(patients, ({ many }) => ({
   preventiveCare: many(preventiveCare),
   dietPlans: many(dietPlans),
   mealEntries: many(mealEntries),
+  user: one(users, {
+    fields: [patients.id],
+    references: [users.patientId],
+  }),
 }));
 
 export const appointmentsRelations = relations(appointments, ({ one, many }) => ({

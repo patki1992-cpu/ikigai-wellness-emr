@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
 
-export function useAuth() {
+export function usePatientAuth() {
   const { data: user, isLoading, error } = useQuery<User>({
-    queryKey: ["/api/auth/user"],
+    queryKey: ["/api/patient/auth/user"],
     retry: false,
   });
 
@@ -11,7 +11,6 @@ export function useAuth() {
     user,
     isLoading,
     isAuthenticated: !!user,
-    isProvider: user?.role === 'provider',
     isPatient: user?.role === 'patient',
     error,
   };

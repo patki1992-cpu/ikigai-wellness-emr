@@ -20,6 +20,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  // Middleware to check provider access
+  const isProviderAuthenticated = async (req: any, res: any, next: any) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'provider') {
+        return res.status(403).json({ message: "Access denied. Provider access required." });
+      }
+      
+      next();
+    } catch (error) {
+      console.error("Error checking provider authentication:", error);
+      res.status(500).json({ message: "Authentication check failed" });
+    }
+  };
+
+  // Middleware to check patient access
+  const isPatientAuthenticated = async (req: any, res: any, next: any) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'patient' || !user.patientId) {
+        return res.status(403).json({ message: "Access denied. Patient access required." });
+      }
+      
+      req.patientId = user.patientId;
+      next();
+    } catch (error) {
+      console.error("Error checking patient authentication:", error);
+      res.status(500).json({ message: "Authentication check failed" });
+    }
+  };
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
@@ -45,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard stats
-  app.get("/api/dashboard/stats", isAuthenticated, async (req: any, res) => {
+  app.get("/api/dashboard/stats", isAuthenticated, isProviderAuthenticated, async (req: any, res) => {
     try {
       const providerId = req.user?.claims?.sub;
       const stats = await storage.getDashboardStats(providerId);
@@ -57,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Patient routes
-  app.get("/api/patients", isAuthenticated, async (req, res) => {
+  app.get("/api/patients", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const { search, limit = "50", offset = "0" } = req.query;
       const result = await storage.getPatients(
@@ -72,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/patients/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/patients/:id", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const patient = await storage.getPatient(req.params.id);
       if (!patient) {
@@ -85,7 +120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/patients", isAuthenticated, async (req, res) => {
+  app.post("/api/patients", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const validatedData = insertPatientSchema.parse(req.body);
       const patient = await storage.createPatient(validatedData);
@@ -99,7 +134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/patients/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/patients/:id", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const validatedData = insertPatientSchema.partial().parse(req.body);
       const patient = await storage.updatePatient(req.params.id, validatedData);
@@ -114,7 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Appointment routes
-  app.get("/api/appointments", isAuthenticated, async (req: any, res) => {
+  app.get("/api/appointments", isAuthenticated, isProviderAuthenticated, async (req: any, res) => {
     try {
       const providerId = req.user?.claims?.sub;
       const { date } = req.query;
@@ -126,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/patients/:patientId/appointments", isAuthenticated, async (req, res) => {
+  app.get("/api/patients/:patientId/appointments", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const appointments = await storage.getPatientAppointments(req.params.patientId);
       res.json(appointments);
@@ -136,7 +171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/appointments", isAuthenticated, async (req: any, res) => {
+  app.post("/api/appointments", isAuthenticated, isProviderAuthenticated, async (req: any, res) => {
     try {
       const providerId = req.user?.claims?.sub;
       
@@ -162,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/appointments/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/appointments/:id", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const validatedData = insertAppointmentSchema.partial().parse(req.body);
       const appointment = await storage.updateAppointment(req.params.id, validatedData);
@@ -177,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Medical record routes
-  app.get("/api/patients/:patientId/medical-records", isAuthenticated, async (req, res) => {
+  app.get("/api/patients/:patientId/medical-records", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const records = await storage.getMedicalRecords(req.params.patientId);
       res.json(records);
@@ -187,7 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/medical-records", isAuthenticated, async (req: any, res) => {
+  app.post("/api/medical-records", isAuthenticated, isProviderAuthenticated, async (req: any, res) => {
     try {
       const providerId = req.user?.claims?.sub;
       const validatedData = insertMedicalRecordSchema.parse({
@@ -206,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Lab result routes
-  app.get("/api/patients/:patientId/lab-results", isAuthenticated, async (req, res) => {
+  app.get("/api/patients/:patientId/lab-results", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const results = await storage.getLabResults(req.params.patientId);
       res.json(results);
@@ -216,7 +251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/lab-results/recent", isAuthenticated, async (req, res) => {
+  app.get("/api/lab-results/recent", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const { limit = "10" } = req.query;
       const results = await storage.getRecentLabResults(parseInt(limit as string));
@@ -227,7 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/lab-results", isAuthenticated, async (req: any, res) => {
+  app.post("/api/lab-results", isAuthenticated, isProviderAuthenticated, async (req: any, res) => {
     try {
       const providerId = req.user?.claims?.sub;
       const validatedData = insertLabResultSchema.parse({
@@ -246,7 +281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Radiology routes
-  app.get("/api/patients/:patientId/radiology-results", isAuthenticated, async (req, res) => {
+  app.get("/api/patients/:patientId/radiology-results", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const results = await storage.getRadiologyResults(req.params.patientId);
       res.json(results);
@@ -256,7 +291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/radiology-results", isAuthenticated, async (req: any, res) => {
+  app.post("/api/radiology-results", isAuthenticated, isProviderAuthenticated, async (req: any, res) => {
     try {
       const providerId = req.user?.claims?.sub;
       const validatedData = insertRadiologyResultSchema.parse({
@@ -275,7 +310,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Medication routes
-  app.get("/api/patients/:patientId/medications", isAuthenticated, async (req, res) => {
+  app.get("/api/patients/:patientId/medications", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const medications = await storage.getMedications(req.params.patientId);
       res.json(medications);
@@ -285,7 +320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/medications", isAuthenticated, async (req: any, res) => {
+  app.post("/api/medications", isAuthenticated, isProviderAuthenticated, async (req: any, res) => {
     try {
       const providerId = req.user?.claims?.sub;
       const validatedData = insertMedicationSchema.parse({
@@ -304,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Allergy routes
-  app.get("/api/patients/:patientId/allergies", isAuthenticated, async (req, res) => {
+  app.get("/api/patients/:patientId/allergies", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const allergies = await storage.getAllergies(req.params.patientId);
       res.json(allergies);
@@ -314,7 +349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/allergies", isAuthenticated, async (req, res) => {
+  app.post("/api/allergies", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const validatedData = insertAllergySchema.parse(req.body);
       const allergy = await storage.createAllergy(validatedData);
@@ -329,7 +364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Preventive care routes
-  app.get("/api/preventive-care", isAuthenticated, async (req, res) => {
+  app.get("/api/preventive-care", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const { patientId } = req.query;
       const care = await storage.getPreventiveCare(patientId as string);
@@ -340,7 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/preventive-care/overdue", isAuthenticated, async (req, res) => {
+  app.get("/api/preventive-care/overdue", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const care = await storage.getOverduePreventiveCare();
       res.json(care);
@@ -350,7 +385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/preventive-care", isAuthenticated, async (req: any, res) => {
+  app.post("/api/preventive-care", isAuthenticated, isProviderAuthenticated, async (req: any, res) => {
     try {
       const providerId = req.user?.claims?.sub;
       const validatedData = insertPreventiveCareSchema.parse({
@@ -369,7 +404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Diet plan routes
-  app.get("/api/patients/:patientId/diet-plans", isAuthenticated, async (req, res) => {
+  app.get("/api/patients/:patientId/diet-plans", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const plans = await storage.getDietPlans(req.params.patientId);
       res.json(plans);
@@ -379,7 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/diet-plans", isAuthenticated, async (req: any, res) => {
+  app.post("/api/diet-plans", isAuthenticated, isProviderAuthenticated, async (req: any, res) => {
     try {
       const providerId = req.user?.claims?.sub;
       const validatedData = insertDietPlanSchema.parse({
@@ -398,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Meal entry routes
-  app.get("/api/diet-plans/:dietPlanId/meal-entries", isAuthenticated, async (req, res) => {
+  app.get("/api/diet-plans/:dietPlanId/meal-entries", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const { date } = req.query;
       const entries = await storage.getMealEntries(req.params.dietPlanId, date as string);
@@ -409,7 +444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/meal-entries", isAuthenticated, async (req, res) => {
+  app.post("/api/meal-entries", isAuthenticated, isProviderAuthenticated, async (req, res) => {
     try {
       const validatedData = insertMealEntrySchema.parse(req.body);
       const entry = await storage.createMealEntry(validatedData);
@@ -420,6 +455,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error creating meal entry:", error);
       res.status(500).json({ message: "Failed to create meal entry" });
+    }
+  });
+
+  // Patient portal authentication routes
+  app.get('/api/patient/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'patient') {
+        return res.status(403).json({ message: "Access denied. Patient access required." });
+      }
+      
+      // Return user with patient data
+      if (user.patientId) {
+        const patient = await storage.getPatient(user.patientId);
+        res.json({ ...user, patient });
+      } else {
+        res.json(user);
+      }
+    } catch (error) {
+      console.error("Error fetching patient user:", error);
+      res.status(500).json({ message: "Failed to fetch patient user" });
+    }
+  });
+
+  // Patient-specific routes (patients can only access their own data)
+  app.get("/api/patient/appointments", isAuthenticated, isPatientAuthenticated, async (req: any, res) => {
+    try {
+      const appointments = await storage.getPatientAppointments(req.patientId);
+      res.json(appointments);
+    } catch (error) {
+      console.error("Error fetching patient appointments:", error);
+      res.status(500).json({ message: "Failed to fetch appointments" });
+    }
+  });
+
+  app.get("/api/patient/medical-records", isAuthenticated, isPatientAuthenticated, async (req: any, res) => {
+    try {
+      const records = await storage.getMedicalRecords(req.patientId);
+      res.json(records);
+    } catch (error) {
+      console.error("Error fetching patient medical records:", error);
+      res.status(500).json({ message: "Failed to fetch medical records" });
+    }
+  });
+
+  app.get("/api/patient/lab-results", isAuthenticated, isPatientAuthenticated, async (req: any, res) => {
+    try {
+      const results = await storage.getLabResults(req.patientId);
+      res.json(results);
+    } catch (error) {
+      console.error("Error fetching patient lab results:", error);
+      res.status(500).json({ message: "Failed to fetch lab results" });
+    }
+  });
+
+  app.get("/api/patient/radiology-results", isAuthenticated, isPatientAuthenticated, async (req: any, res) => {
+    try {
+      const results = await storage.getRadiologyResults(req.patientId);
+      res.json(results);
+    } catch (error) {
+      console.error("Error fetching patient radiology results:", error);
+      res.status(500).json({ message: "Failed to fetch radiology results" });
+    }
+  });
+
+  app.get("/api/patient/medications", isAuthenticated, isPatientAuthenticated, async (req: any, res) => {
+    try {
+      const medications = await storage.getMedications(req.patientId);
+      res.json(medications);
+    } catch (error) {
+      console.error("Error fetching patient medications:", error);
+      res.status(500).json({ message: "Failed to fetch medications" });
+    }
+  });
+
+  app.get("/api/patient/allergies", isAuthenticated, isPatientAuthenticated, async (req: any, res) => {
+    try {
+      const allergies = await storage.getAllergies(req.patientId);
+      res.json(allergies);
+    } catch (error) {
+      console.error("Error fetching patient allergies:", error);
+      res.status(500).json({ message: "Failed to fetch allergies" });
+    }
+  });
+
+  app.get("/api/patient/preventive-care", isAuthenticated, isPatientAuthenticated, async (req: any, res) => {
+    try {
+      const preventiveCare = await storage.getPreventiveCare(req.patientId);
+      res.json(preventiveCare);
+    } catch (error) {
+      console.error("Error fetching patient preventive care:", error);
+      res.status(500).json({ message: "Failed to fetch preventive care" });
+    }
+  });
+
+  app.get("/api/patient/diet-plans", isAuthenticated, isPatientAuthenticated, async (req: any, res) => {
+    try {
+      const dietPlans = await storage.getDietPlans(req.patientId);
+      res.json(dietPlans);
+    } catch (error) {
+      console.error("Error fetching patient diet plans:", error);
+      res.status(500).json({ message: "Failed to fetch diet plans" });
+    }
+  });
+
+  app.get("/api/patient/profile", isAuthenticated, isPatientAuthenticated, async (req: any, res) => {
+    try {
+      const patient = await storage.getPatient(req.patientId);
+      res.json(patient);
+    } catch (error) {
+      console.error("Error fetching patient profile:", error);
+      res.status(500).json({ message: "Failed to fetch patient profile" });
     }
   });
 

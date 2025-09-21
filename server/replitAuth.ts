@@ -56,14 +56,74 @@ function updateUserSession(
 
 async function upsertUser(
   claims: any,
+  role?: 'provider' | 'patient'
 ) {
-  await storage.upsertUser({
-    id: claims["sub"],
-    email: claims["email"],
-    firstName: claims["first_name"],
-    lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"],
-  });
+  const userId = claims["sub"];
+  
+  // Check if user already exists
+  const existingUser = await storage.getUser(userId);
+  
+  if (existingUser) {
+    // User exists - verify the role matches what they're trying to use
+    if (role && existingUser.role !== role) {
+      throw new Error(`Access denied. User has role '${existingUser.role}' but attempted to login as '${role}'.`);
+    }
+    
+    // Update user data without changing role
+    const userData = {
+      id: userId,
+      email: claims["email"],
+      firstName: claims["first_name"],
+      lastName: claims["last_name"],
+      profileImageUrl: claims["profile_image_url"],
+      role: existingUser.role, // Keep existing role
+      patientId: existingUser.patientId, // Keep existing patientId
+    };
+    
+    return await storage.upsertUser(userData);
+  } else {
+    // New user - role assignment must be explicit, no defaults
+    if (!role) {
+      throw new Error('Role must be specified for new users.');
+    }
+    
+    const userData = {
+      id: userId,
+      email: claims["email"],
+      firstName: claims["first_name"],
+      lastName: claims["last_name"],
+      profileImageUrl: claims["profile_image_url"],
+      role: role,
+    };
+    
+    const user = await storage.upsertUser(userData);
+    
+    // If this is a new patient user, create a patient record
+    if (role === 'patient') {
+      try {
+        const patient = await storage.createPatient({
+          firstName: claims["first_name"],
+          lastName: claims["last_name"],
+          email: claims["email"],
+          phone: '', // We don't have phone from OIDC claims
+          dateOfBirth: '1990-01-01', // Default DOB, patient can update later
+          gender: 'other', // Default gender, patient can update later
+          address: '', // Default empty address
+        });
+        
+        // Update the user with the patient ID
+        return await storage.upsertUser({
+          ...userData,
+          patientId: patient.id,
+        });
+      } catch (error) {
+        console.error('Error creating patient record for new patient user:', error);
+        return user;
+      }
+    }
+    
+    return user;
+  }
 }
 
 export async function setupAuth(app: Express) {
@@ -74,28 +134,46 @@ export async function setupAuth(app: Express) {
 
   const config = await getOidcConfig();
 
-  const verify: VerifyFunction = async (
+  const createVerifyFunction = (role?: 'provider' | 'patient'): VerifyFunction => async (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user);
+    try {
+      const user = {};
+      updateUserSession(user, tokens);
+      await upsertUser(tokens.claims(), role);
+      verified(null, user);
+    } catch (error) {
+      console.error(`Authentication failed for role ${role}:`, error);
+      verified(error, false);
+    }
   };
 
   for (const domain of process.env
     .REPLIT_DOMAINS!.split(",")) {
-    const strategy = new Strategy(
+    // Provider strategy (default)
+    const providerStrategy = new Strategy(
       {
         name: `replitauth:${domain}`,
         config,
         scope: "openid email profile offline_access",
         callbackURL: `https://${domain}/api/callback`,
       },
-      verify,
+      createVerifyFunction('provider'),
     );
-    passport.use(strategy);
+    passport.use(providerStrategy);
+    
+    // Patient strategy
+    const patientStrategy = new Strategy(
+      {
+        name: `replitauth-patient:${domain}`,
+        config,
+        scope: "openid email profile offline_access",
+        callbackURL: `https://${domain}/api/patient/callback`,
+      },
+      createVerifyFunction('patient'),
+    );
+    passport.use(patientStrategy);
   }
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
@@ -112,6 +190,21 @@ export async function setupAuth(app: Express) {
     passport.authenticate(`replitauth:${req.hostname}`, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
+    })(req, res, next);
+  });
+
+  // Patient-specific login endpoints
+  app.get("/api/patient/login", (req, res, next) => {
+    passport.authenticate(`replitauth-patient:${req.hostname}`, {
+      prompt: "login consent",
+      scope: ["openid", "email", "profile", "offline_access"],
+    })(req, res, next);
+  });
+
+  app.get("/api/patient/callback", (req, res, next) => {
+    passport.authenticate(`replitauth-patient:${req.hostname}`, {
+      successReturnToOrRedirect: "/patient-dashboard",
+      failureRedirect: "/api/patient/login",
     })(req, res, next);
   });
 

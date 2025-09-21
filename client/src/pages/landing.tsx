@@ -26,7 +26,7 @@ export default function Landing() {
             </div>
             <div className="flex gap-3">
               <Button 
-                onClick={() => window.location.href = '/patient-portal'}
+                onClick={() => window.location.href = '/api/patient/login'}
                 data-testid="button-patient-portal"
                 variant="outline"
                 className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
